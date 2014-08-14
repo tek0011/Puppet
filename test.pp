@@ -1,19 +1,22 @@
 
-define obsolete_java {
-    windows_path {
-       $name:
-           ensure => absent,
-           directory => "C:\Program Files\Java\$name\bin";
-   }
-}
-
+# Installs and manages Java on Windows machines.
+# $source should be set to the name of the .exe that will be copied over.
+# $package should be the name of the installed program. Easiest way to figure this out is to install manually, then look at installed program list.
+# $file should be equal to the name of the files that get created by the install, such as 'jdk1.7.0_55'. Used to set the path.
+#
 define windows_java::setup (
   $ensure        = 'present',
   $source        = undef,
   $file          = undef,
   $package       = undef ) {
 
-obsolete_java { [ 'jdk1.7.0_50', 'jdk1.7.0_51']: }
+define obsolete_java {
+    windows_path {
+       $name:
+           ensure    => absent,
+           directory => "C:\\Program Files\\Java\\$name\\bin";
+    }
+
 
   case $::osfamily {
     Windows  : { $supported = true }
@@ -70,11 +73,22 @@ obsolete_java { [ 'jdk1.7.0_50', 'jdk1.7.0_51']: }
       mergemode => clobber,
     }
 
-    # Adds java to the path.
-    # windows_path {'javaPath':
-    #  ensure      => present,
-    #  directory   => "C:\\Program Files\\Java\\$file\\bin",
+    # Removes current java paths from PATH
+    #windows_path {'remove_java_path2':
+    #  ensure     => absent,
+    #  directory  => "C:\\Program Files\\Java\\$file\\bin",
     #}
+
+    obsolete_java {'jdk1.7.0_51':
+      ensure      => absent,
+      directory   => "C:\\Program Files\\Java\\$file\\bin",
+    }
+
+    # Adds java to the path.
+    windows_path {'javaPath':
+      ensure      => present,
+      directory   => "C:\\Program Files\\Java\\$file\\bin",
+    }
   } else {
 
     package { 'remove-package':
